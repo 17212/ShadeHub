@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShadeHub | View Node</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script type="module" src="js/firebase.js"></script>
+    <script type="module">
+        import { db } from './js/firebase.js';
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initCommentsListener, addComment } from './js/comments.js';
+        import { formatTimestamp } from './js/ui.js';
+        import './js/auth.js'; // Init auth
+
+        // Matrix Rain
+        import { initMatrixRain } from './js/app.js'; // We might need to export this or copy it. 
+        // Actually app.js runs on load, but we need to make sure it doesn't conflict.
+        // Let's just rely on app.js being included if we want global effects, 
+        // but for this specific page logic we write it here or in a specific module.
+        // For simplicity, I'll inline the specific logic here.
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        if (!postId) {
+            window.location.href = 'index.html';
+        }
+
+        async function loadPost() {
+            const docRef = doc(db, "posts", postId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const post = docSnap.data();
+                document.title = `ShadeHub | ${post.title}`;
+                document.getElementById('post-title').innerText = post.title;
+                document.getElementById('post-meta').innerHTML = `USER: ${post.authorName} | ${formatTimestamp(post.timestamp)}`;
+                document.getElementById('post-body').innerText = post.body;
+
+                initCommentsListener(postId);
+            } else {
+                document.getElementById('post-container').innerHTML = '<h1>// ERROR: NODE_NOT_FOUND</h1>';
+            }
+        }
+
+        document.getElementById('comment-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = document.getElementById('comment-input').value;
+            addComment(postId, text);
+            document.getElementById('comment-input').value = '';
+        });
+
+        loadPost();
+    </script>
+    <style>
+        .single-post-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .post-full {
+            background: var(--panel-bg);
+            border: 1px solid var(--neon-green);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+
+        .comment-section {
+            margin-top: 2rem;
+        }
+
+        .comment-card {
+            background: rgba(20, 20, 20, 0.8);
+            border-left: 2px solid var(--border-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            margin-left: 0;
+        }
+
+        .comment-card.reply {
+            margin-left: 2rem;
+            border-left-color: var(--neon-cyan);
+        }
+
+        .user-tag {
+            color: var(--neon-cyan);
+            font-weight: bold;
+        }
+
+        .time-tag {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            float: right;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="matrix-bg" id="matrix-bg"></div>
+    <div class="scanline"></div>
+
+    <nav class="navbar" style="max-width: 1200px; margin: 0 auto; padding: 1rem;">
+        <div class="logo"><a href="index.html" style="text-decoration:none;"><span class="glitch"
+                    data-text="SHADEHUB">SHADEHUB</span></a></div>
+        <div class="nav-links">
+            <a href="index.html">[RETURN_TO_FEED]</a>
+        </div>
+    </nav>
+
+    <div class="single-post-container" id="post-container">
+        <article class="post-full">
+            <div class="post-meta" id="post-meta">LOADING_DATA...</div>
+            <h1 id="post-title" class="glitch" style="margin: 1rem 0;"></h1>
+            <div id="post-body" style="white-space: pre-wrap; line-height: 1.6;"></div>
+        </article>
+
+        <div class="comment-section">
+            <h3>// ENCRYPTED_CHANNELS</h3>
+            <form id="comment-form" style="margin-bottom: 2rem;">
+                <textarea id="comment-input" placeholder="INSERT_DATA_PACKET..." required
+                    style="min-height: 100px;"></textarea>
+                <button type="submit" class="cyber-btn">TRANSMIT_COMMENT</button>
+            </form>
+            <div id="comments-container">
+                <!-- Comments injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Re-use matrix rain logic from app.js or simple inline -->
+    <script>
+        // Simple matrix rain for this page
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        document.getElementById('matrix-bg').appendChild(canvas);
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = '01';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 33);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShadeHub | The Underground Network</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDKs -->
+    <script type="module" src="js/firebase.js"></script>
+    <script type="module" src="js/app.js"></script>
+</head>
+<body>
+    <div class="matrix-bg" id="matrix-bg"></div>
+    <div class="scanline"></div>
+    
+    <div class="app-container">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <div class="logo">
+                <span class="glitch" data-text="SHADEHUB">SHADEHUB</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="active">[FEED]</a>
+                <a href="#" id="create-post-btn">[NEW_POST]</a>
+                <a href="profile.html" id="profile-link">[PROFILE]</a>
+                <a href="#" id="login-btn">[LOGIN]</a>
+            </div>
+        </nav>
+
+        <!-- Main Content Layout -->
+        <main class="main-layout">
+            <!-- Sidebar (Filters & Info) -->
+            <aside class="sidebar">
+                <div class="panel">
+                    <h3>// SYSTEM_STATUS</h3>
+                    <div class="stat-row"><span>USERS:</span> <span id="user-count" class="neon-text">8,402</span></div>
+                    <div class="stat-row"><span>NODES:</span> <span class="neon-text">ACTIVE</span></div>
+                </div>
+                
+                <div class="panel">
+                    <h3>// FILTERS</h3>
+                    <ul class="filter-list">
+                        <li><a href="#" class="active">> ALL_THREADS</a></li>
+                        <li><a href="#">> POPULAR</a></li>
+                        <li><a href="#">> NEWEST</a></li>
+                        <li><a href="#">> MY_LOGS</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Feed Section -->
+            <section class="feed-container" id="feed-container">
+                <!-- Posts will be injected here by JS -->
+                <div class="loading-skeleton">
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line body"></div>
+                    <div class="skeleton-line body"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="auth-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>// AUTHENTICATE</h2>
+            <form id="login-form">
+                <input type="email" placeholder="EMAIL_ADDRESS" required>
+                <input type="password" placeholder="ACCESS_KEY" required>
+                <button type="submit" class="cyber-btn">ESTABLISH_LINK</button>
+            </form>
+            <button id="google-login" class="cyber-btn secondary">GOOGLE_OAUTH_PROXY</button>
+            <button id="anon-login" class="cyber-btn ghost">ANONYMOUS_MODE</button>
+        </div>
+    </div>
+
+    <div id="create-post-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>// UPLOAD_DATA</h2>
+            <form id="post-form">
+                <input type="text" id="post-title" placeholder="TITLE_HEADER" required>
+                <textarea id="post-body" placeholder="DATA_PAYLOAD..." required></textarea>
+                <input type="text" id="post-tags" placeholder="TAGS (comma separated)">
+                <button type="submit" class="cyber-btn">TRANSMIT</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
