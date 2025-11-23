@@ -1,12 +1,14 @@
 import { auth, db } from './firebase.js';
 
-// Initialize Feed
-import('./posts.js').then(module => {
-    module.loadPosts();
-});
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Feed
+    import('./posts.js').then(module => {
+        module.loadPosts();
+    });
 
-// Event Listeners for Modals
-setupModals();
+    // Event Listeners for Modals
+    setupModals();
+    initMatrixRain();
 });
 
 function initMatrixRain() {
