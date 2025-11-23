@@ -32,50 +32,13 @@ export async function createPost(title, body, tags) {
         showToast('DATA_UPLOADED_SUCCESSFULLY');
         document.getElementById('create-post-modal').classList.add('hidden');
         document.getElementById('post-form').reset();
-    } catch (error) {
-        console.error(error);
-        showToast('UPLOAD_FAILED', 'error');
-    }
-}
-
-export function initFeedListener() {
-    const feedContainer = document.getElementById('feed-container');
-    if (!feedContainer) return;
-
-    const q = query(postsCollection, orderBy('timestamp', 'desc'), limit(50));
-
-    onSnapshot(q, (snapshot) => {
-        feedContainer.innerHTML = ''; // Clear current feed
-
-        if (snapshot.empty) {
-            feedContainer.innerHTML = '<div class="post-card"><h3>// NO_DATA_FOUND</h3></div>';
-            return;
-        }
-
-        snapshot.forEach((doc) => {
-            const post = doc.data();
-            const postEl = createPostElement(doc.id, post);
-            feedContainer.appendChild(postEl);
-        });
-    });
-}
-
-function createPostElement(id, post) {
-    const div = document.createElement('div');
-    div.className = 'post-card';
-    div.innerHTML = `
-        <div class="post-meta">
-            <span>USER: ${post.authorName}</span>
-            <span>${formatTimestamp(post.timestamp)}</span>
-        </div>
-        <h2 class="post-title"><a href="post.html?id=${id}">${post.title}</a></h2>
         <div class="post-preview">${post.body.substring(0, 150)}${post.body.length > 150 ? '...' : ''}</div>
         <div class="post-actions">
             <button class="action-btn">▲ ${post.votes}</button>
             <button class="action-btn">💬 ${post.commentsCount} COMMENTS</button>
             <button class="action-btn">⚡ SHARE</button>
         </div>
-    `;
+        `;
     return div;
 }
 

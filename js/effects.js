@@ -190,372 +190,293 @@ function initScrollProgress() {
 
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
-        bar.style.width = scrolled + '%';
-    });
-}
+        initPageTransition();
 
-// 9. Command Palette (Ctrl+K)
-function initCommandPalette() {
-    const palette = document.createElement('div');
-    palette.className = 'command-palette hidden';
-    palette.innerHTML = `
-        <div class="cmd-content">
-            <input type="text" id="cmd-input" placeholder="> ENTER_COMMAND...">
-            <ul id="cmd-list">
-                <li data-action="home">> GO_TO_FEED</li>
-                <li data-action="profile">> OPEN_PROFILE</li>
-                <li data-action="new_post">> UPLOAD_DATA</li>
-                <li data-action="zen">> TOGGLE_ZEN_MODE</li>
-                <li data-action="tor">> CONNECT_TOR</li>
-            </ul>
-        </div>
-    `;
-    document.body.appendChild(palette);
+        // 10. 3D Tilt Effect for Cards
+        function initTiltEffect() {
+            document.addEventListener('mousemove', (e) => {
+                document.querySelectorAll('.post-card, .panel').forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
 
-    const input = palette.querySelector('#cmd-input');
-    const list = palette.querySelector('#cmd-list');
+                    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'k' && e.ctrlKey) {
-            e.preventDefault();
-            palette.classList.remove('hidden');
-            input.focus();
+                        const rotateX = ((y - centerY) / centerY) * -5; // Max 5deg rotation
+                        const rotateY = ((x - centerX) / centerX) * 5;
+
+                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                        card.style.borderColor = 'var(--neon-green)';
+                    } else {
+                        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+                        card.style.borderColor = '';
+                    }
+                });
+            });
         }
-        if (e.key === 'Escape') {
-            palette.classList.add('hidden');
+
+        // 11. Hacker Typing Effects (Sound + Visual)
+        function initTypingEffects() {
+            const inputs = document.querySelectorAll('input[type="text"], textarea, input[type="password"], input[type="email"]');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    audioSys.playClick(); // Mechanical sound
+
+                    // Random color glitch on border
+                    input.style.borderColor = Math.random() > 0.5 ? 'var(--neon-green)' : 'var(--neon-pink)';
+                    setTimeout(() => input.style.borderColor = '', 100);
+                });
+            });
         }
-    });
 
-    // Filter commands
-    input.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        Array.from(list.children).forEach(li => {
-            const text = li.innerText.toLowerCase();
-            li.style.display = text.includes(term) ? 'block' : 'none';
-        });
-    });
+        // 12. Page Transition (Terminal Style)
+        function initPageTransition() {
+            // Intercept link clicks
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (link && link.href && link.href.startsWith(window.location.origin) && !link.getAttribute('href').startsWith('#')) {
+                    e.preventDefault();
+                    const targetUrl = link.href;
 
-    // Execute commands
-    list.addEventListener('click', (e) => {
-        const action = e.target.getAttribute('data-action');
-        if (!action) return;
+                    const overlay = document.createElement('div');
+                    overlay.className = 'page-transition-overlay';
+                    overlay.innerHTML = `<div class="loader-text">> INITIATING_JUMP_SEQUENCE...</div>`;
+                    document.body.appendChild(overlay);
 
-        palette.classList.add('hidden');
-        audioSys.playClick();
+                    // Play sound
+                    audioSys.playGlitch();
 
-        switch (action) {
-            case 'home': window.location.href = 'index.html'; break;
-            case 'profile': window.location.href = 'profile.html'; break;
-            case 'new_post': document.getElementById('create-post-btn').click(); break;
-            case 'zen': document.body.classList.toggle('zen-mode'); break;
-            case 'tor': simulateTorConnection(); break;
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 800);
+                }
+            });
         }
-    });
-}
 
-function showToast(msg) {
-    // Simple toast reuse or create new
-    const toast = document.createElement('div');
-    toast.className = 'sys-toast';
-    toast.innerText = `> ${msg}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
+        // 6. Tor Gate Simulation (Triggered by 'T' key 3 times)
+        function initTorGate() {
+            let tCount = 0;
+            document.addEventListener('keydown', (e) => {
+                if (e.key.toLowerCase() === 't') {
+                    tCount++;
+                    if (tCount === 3) {
+                        simulateTorConnection();
+                        tCount = 0;
+                    }
+                } else {
+                    tCount = 0;
+                }
+            });
+        }
 
-initZenMode();
-initScrollProgress();
-initCommandPalette();
-initTiltEffect();
-initTypingEffects();
-initPageTransition();
-
-// 10. 3D Tilt Effect for Cards
-function initTiltEffect() {
-    document.addEventListener('mousemove', (e) => {
-        document.querySelectorAll('.post-card, .panel').forEach(card => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-
-                const rotateX = ((y - centerY) / centerY) * -5; // Max 5deg rotation
-                const rotateY = ((x - centerX) / centerX) * 5;
-
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-                card.style.borderColor = 'var(--neon-green)';
-            } else {
-                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-                card.style.borderColor = '';
-            }
-        });
-    });
-}
-
-// 11. Hacker Typing Effects (Sound + Visual)
-function initTypingEffects() {
-    const inputs = document.querySelectorAll('input[type="text"], textarea, input[type="password"], input[type="email"]');
-
-    inputs.forEach(input => {
-        input.addEventListener('input', () => {
-            audioSys.playClick(); // Mechanical sound
-
-            // Random color glitch on border
-            input.style.borderColor = Math.random() > 0.5 ? 'var(--neon-green)' : 'var(--neon-pink)';
-            setTimeout(() => input.style.borderColor = '', 100);
-        });
-    });
-}
-
-// 12. Page Transition (Terminal Style)
-function initPageTransition() {
-    // Intercept link clicks
-    document.addEventListener('click', (e) => {
-        const link = e.target.closest('a');
-        if (link && link.href && link.href.startsWith(window.location.origin) && !link.getAttribute('href').startsWith('#')) {
-            e.preventDefault();
-            const targetUrl = link.href;
-
+        function simulateTorConnection() {
             const overlay = document.createElement('div');
-            overlay.className = 'page-transition-overlay';
-            overlay.innerHTML = `<div class="loader-text">> INITIATING_JUMP_SEQUENCE...</div>`;
-            document.body.appendChild(overlay);
-
-            // Play sound
-            audioSys.playGlitch();
-
-            setTimeout(() => {
-                window.location.href = targetUrl;
-            }, 800);
-        }
-    });
-}
-
-// 6. Tor Gate Simulation (Triggered by 'T' key 3 times)
-function initTorGate() {
-    let tCount = 0;
-    document.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 't') {
-            tCount++;
-            if (tCount === 3) {
-                simulateTorConnection();
-                tCount = 0;
-            }
-        } else {
-            tCount = 0;
-        }
-    });
-}
-
-function simulateTorConnection() {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
+            overlay.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #000; z-index: 30000; display: flex;
         justify-content: center; align-items: center; flex-direction: column;
         font-family: monospace; color: #fff;
     `;
-    document.body.appendChild(overlay);
+            document.body.appendChild(overlay);
 
-    const steps = [
-        'Establishing encrypted circuit...',
-        'Handshaking with relay node 1 (France)...',
-        'Handshaking with relay node 2 (Russia)...',
-        'Handshaking with exit node (Unknown)...',
-        'Circuit established.',
-        'Welcome to the Onion Router.'
-    ];
+            const steps = [
+                'Establishing encrypted circuit...',
+                'Handshaking with relay node 1 (France)...',
+                'Handshaking with relay node 2 (Russia)...',
+                'Handshaking with exit node (Unknown)...',
+                'Circuit established.',
+                'Welcome to the Onion Router.'
+            ];
 
-    let delay = 0;
-    steps.forEach(step => {
-        setTimeout(() => {
-            const p = document.createElement('p');
-            p.innerText = `> ${step}`;
-            p.style.color = '#0f0';
-            overlay.appendChild(p);
-        }, delay);
-        delay += 1000 + Math.random() * 1000;
-    });
+            let delay = 0;
+            steps.forEach(step => {
+                setTimeout(() => {
+                    const p = document.createElement('p');
+                    p.innerText = `> ${step}`;
+                    p.style.color = '#0f0';
+                    overlay.appendChild(p);
+                }, delay);
+                delay += 1000 + Math.random() * 1000;
+            });
 
-    setTimeout(() => {
-        overlay.remove();
-        alert('// TOR_MODE_ACTIVE: Your IP is now hidden.');
-    }, delay + 1000);
-}
-
-initTorGate();
-initKonamiCode();
-initEncryptedComments();
-initSystemLogs();
-initNodeMap();
-
-// 13. Konami Code (God Mode)
-function initKonamiCode() {
-    const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    let index = 0;
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === code[index]) {
-            index++;
-            if (index === code.length) {
-                activateGodMode();
-                index = 0;
-            }
-        } else {
-            index = 0;
+            setTimeout(() => {
+                overlay.remove();
+                alert('// TOR_MODE_ACTIVE: Your IP is now hidden.');
+            }, delay + 1000);
         }
-    });
-}
 
-function activateGodMode() {
-    audioSys.playGlitch();
-    document.body.style.fontFamily = '"Comic Sans MS", cursive'; // The ultimate troll
-    alert('// GOD_MODE_ACTIVATED: UNLIMITED_POWER (Just kidding, nice font though)');
-    setTimeout(() => {
-        document.body.style.fontFamily = '';
-        showToast('GOD_MODE_DEACTIVATED');
-    }, 5000);
-}
+        initTorGate();
+        initKonamiCode();
+        initEncryptedComments();
+        initSystemLogs();
+        initNodeMap();
 
-// 14. Encrypted Comments (Decrypt on Hover)
-function initEncryptedComments() {
-    // Observer to handle dynamically loaded comments
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            mutation.addedNodes.forEach((node) => {
-                if (node.nodeType === 1 && node.classList.contains('comment-card')) {
-                    encryptNode(node.querySelector('p') || node); // Assuming p tag or direct text
+        // 13. Konami Code (God Mode)
+        function initKonamiCode() {
+            const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+            let index = 0;
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === code[index]) {
+                    index++;
+                    if (index === code.length) {
+                        activateGodMode();
+                        index = 0;
+                    }
+                } else {
+                    index = 0;
                 }
             });
-        });
-    });
+        }
 
-    const container = document.getElementById('comments-container');
-    if (container) {
-        observer.observe(container, { childList: true, subtree: true });
-    }
-}
+        function activateGodMode() {
+            audioSys.playGlitch();
+            document.body.style.fontFamily = '"Comic Sans MS", cursive'; // The ultimate troll
+            alert('// GOD_MODE_ACTIVATED: UNLIMITED_POWER (Just kidding, nice font though)');
+            setTimeout(() => {
+                document.body.style.fontFamily = '';
+                showToast('GOD_MODE_DEACTIVATED');
+            }, 5000);
+        }
 
-function encryptNode(element) {
-    const originalText = element.innerText;
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+        // 14. Encrypted Comments (Decrypt on Hover)
+        function initEncryptedComments() {
+            // Observer to handle dynamically loaded comments
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1 && node.classList.contains('comment-card')) {
+                            encryptNode(node.querySelector('p') || node); // Assuming p tag or direct text
+                        }
+                    });
+                });
+            });
 
-    element.dataset.original = originalText;
-    element.innerText = originalText.split('').map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
-    element.classList.add('encrypted-text');
-
-    element.addEventListener('mouseenter', () => {
-        revealText(element, originalText);
-        audioSys.playHover();
-    });
-}
-
-function revealText(element, text) {
-    let iterations = 0;
-    const interval = setInterval(() => {
-        element.innerText = element.innerText.split('').map((char, index) => {
-            if (index < iterations) {
-                return text[index];
+            const container = document.getElementById('comments-container');
+            if (container) {
+                observer.observe(container, { childList: true, subtree: true });
             }
-            return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*'[Math.floor(Math.random() * 43)];
-        }).join('');
-
-        if (iterations >= text.length) {
-            clearInterval(interval);
         }
-        iterations += 1 / 3; // Speed of decryption
-    }, 30);
-}
 
-// 15. Live System Logs
-function initSystemLogs() {
-    const logContainer = document.createElement('div');
-    logContainer.className = 'system-logs';
-    document.body.appendChild(logContainer);
+        function encryptNode(element) {
+            const originalText = element.innerText;
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
 
-    const messages = [
-        'Packet intercepted from 192.168.x.x',
-        'Encryption key rotated',
-        'New node joined the swarm',
-        'Brute force attempt blocked',
-        'Data stream synchronized',
-        'Ping: 14ms',
-        'Firewall integrity: 98%'
-    ];
+            element.dataset.original = originalText;
+            element.innerText = originalText.split('').map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+            element.classList.add('encrypted-text');
 
-    setInterval(() => {
-        const msg = messages[Math.floor(Math.random() * messages.length)];
-        const line = document.createElement('div');
-        line.className = 'log-line';
-        line.innerText = `> [${new Date().toLocaleTimeString()}] ${msg}`;
-        logContainer.prepend(line);
-
-        if (logContainer.children.length > 5) {
-            logContainer.lastChild.remove();
+            element.addEventListener('mouseenter', () => {
+                revealText(element, originalText);
+                audioSys.playHover();
+            });
         }
-    }, 2000);
-}
 
-// 16. Active Node Map (Visual)
-function initNodeMap() {
-    const sidebar = document.querySelector('.sidebar');
-    if (!sidebar) return;
+        function revealText(element, text) {
+            let iterations = 0;
+            const interval = setInterval(() => {
+                element.innerText = element.innerText.split('').map((char, index) => {
+                    if (index < iterations) {
+                        return text[index];
+                    }
+                    return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*'[Math.floor(Math.random() * 43)];
+                }).join('');
 
-    const panel = document.createElement('div');
-    panel.className = 'panel';
-    panel.innerHTML = `<h3>// ACTIVE_NODES</h3><canvas id="node-map" width="240" height="150"></canvas>`;
-    sidebar.appendChild(panel);
-
-    const canvas = document.getElementById('node-map');
-    const ctx = canvas.getContext('2d');
-    const nodes = [];
-
-    for (let i = 0; i < 20; i++) {
-        nodes.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 2,
-            vy: (Math.random() - 0.5) * 2
-        });
-    }
-
-    function draw() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#00ff41';
-        nodes.forEach(node => {
-            node.x += node.vx;
-            node.y += node.vy;
-
-            if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
-            if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
-
-            ctx.beginPath();
-            ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // Draw connections
-        ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)';
-        ctx.beginPath();
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-                const dx = nodes[i].x - nodes[j].x;
-                const dy = nodes[i].y - nodes[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 50) {
-                    ctx.moveTo(nodes[i].x, nodes[i].y);
-                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                if (iterations >= text.length) {
+                    clearInterval(interval);
                 }
-            }
+                iterations += 1 / 3; // Speed of decryption
+            }, 30);
         }
-        ctx.stroke();
-        requestAnimationFrame(draw);
-    }
-    draw();
-}
+
+        // 15. Live System Logs
+        function initSystemLogs() {
+            const logContainer = document.createElement('div');
+            logContainer.className = 'system-logs';
+            document.body.appendChild(logContainer);
+
+            const messages = [
+                'Packet intercepted from 192.168.x.x',
+                'Encryption key rotated',
+                'New node joined the swarm',
+                'Brute force attempt blocked',
+                'Data stream synchronized',
+                'Ping: 14ms',
+                'Firewall integrity: 98%'
+            ];
+
+            setInterval(() => {
+                const msg = messages[Math.floor(Math.random() * messages.length)];
+                const line = document.createElement('div');
+                line.className = 'log-line';
+                line.innerText = `> [${new Date().toLocaleTimeString()}] ${msg}`;
+                logContainer.prepend(line);
+
+                if (logContainer.children.length > 5) {
+                    logContainer.lastChild.remove();
+                }
+            }, 2000);
+        }
+
+        // 16. Active Node Map (Visual)
+        function initNodeMap() {
+            const sidebar = document.querySelector('.sidebar');
+            if (!sidebar) return;
+
+            const panel = document.createElement('div');
+            panel.className = 'panel';
+            panel.innerHTML = `<h3>// ACTIVE_NODES</h3><canvas id="node-map" width="240" height="150"></canvas>`;
+            sidebar.appendChild(panel);
+
+            const canvas = document.getElementById('node-map');
+            const ctx = canvas.getContext('2d');
+            const nodes = [];
+
+            for (let i = 0; i < 20; i++) {
+                nodes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2
+                });
+            }
+
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#00ff41';
+                nodes.forEach(node => {
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+                    if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Draw connections
+                ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)';
+                ctx.beginPath();
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 50) {
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+                        }
+                    }
+                }
+                ctx.stroke();
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }

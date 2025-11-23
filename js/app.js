@@ -1,21 +1,7 @@
 import { auth, db } from './firebase.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('// SYSTEM_INIT: SHADEHUB_CORE_ONLINE');
-
-    // Initialize Matrix Rain Effect
-    initMatrixRain();
-
-    // Initialize Feed
-    import('./posts.js').then(module => {
-        module.initFeedListener();
-    });
-
-    // Import Auth to start listener
-    import('./auth.js');
-
-    // Event Listeners for Modals
-    setupModals();
+// Event Listeners for Modals
+setupModals();
 });
 
 function initMatrixRain() {
