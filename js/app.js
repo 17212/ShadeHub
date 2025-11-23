@@ -1,4 +1,5 @@
 import { auth, db } from './firebase.js';
+import './auth.js'; // Import auth logic to bind listeners
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Feed

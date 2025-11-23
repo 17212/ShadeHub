@@ -115,13 +115,44 @@ export async function handleLogout() {
 }
 
 // Bind events
-document.getElementById('login-form')?.addEventListener('submit', (e) => {
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const inputs = e.target.querySelectorAll('input');
-    // Simple check to distinguish login vs register (in a real app, use tabs)
-    // For now, we'll try login, if fails with user-not-found, we try register? 
-    // Or better, just assume login for now.
-    loginEmailPassword(inputs[0].value, inputs[1].value);
+    const email = inputs[0].value;
+    const password = inputs[1].value;
+
+    try {
+        await loginEmailPassword(email, password);
+    } catch (error) {
+        // If user not found, try to register
+        // Note: loginEmailPassword catches errors, so we need to modify it to throw or return status
+        // For now, let's just call register if login fails is tricky without refactoring.
+        // Let's refactor the listener to call the raw firebase functions or modify the helpers.
+        // Actually, the helpers swallow errors. Let's use the helpers but check auth state?
+        // No, let's just use the raw functions here for the "Smart Login/Register" flow.
+
+        // Wait, the helpers show toasts. Let's just try register if login fails.
+        // But the helpers catch the error.
+        // Let's modify this listener to do it manually.
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            showToast('ACCESS_GRANTED');
+            document.getElementById('auth-modal').classList.add('hidden');
+        } catch (loginError) {
+            if (loginError.code === 'auth/user-not-found' || loginError.code === 'auth/invalid-credential') {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showToast('NEW_IDENTITY_CREATED');
+                    document.getElementById('auth-modal').classList.add('hidden');
+                } catch (regError) {
+                    showToast(`ERROR: ${regError.message}`, 'error');
+                }
+            } else {
+                showToast(`LOGIN_FAILED: ${loginError.message}`, 'error');
+            }
+        }
+    }
 });
 
 document.getElementById('anon-login')?.addEventListener('click', loginAnonymous);
