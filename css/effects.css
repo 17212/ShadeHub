@@ -495,19 +495,4 @@ body {
         border: 1px solid var(--neon-green);
         color: var(--neon-green);
         padding: 1rem 2rem;
-        font-family: 'Share Tech Mono', monospace;
-        z-index: 10002;
-        animation: slide-up 0.3s ease;
-    }
-
-    @keyframes slide-up {
-        from {
-            transform: translate(-50%, 100%);
-            opacity: 0;
-        }
-
-        to {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
     }

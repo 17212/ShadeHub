@@ -267,6 +267,73 @@ function showToast(msg) {
 initZenMode();
 initScrollProgress();
 initCommandPalette();
+initTiltEffect();
+initTypingEffects();
+initPageTransition();
+
+// 10. 3D Tilt Effect for Cards
+function initTiltEffect() {
+    document.addEventListener('mousemove', (e) => {
+        document.querySelectorAll('.post-card, .panel').forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = ((y - centerY) / centerY) * -5; // Max 5deg rotation
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                card.style.borderColor = 'var(--neon-green)';
+            } else {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+                card.style.borderColor = '';
+            }
+        });
+    });
+}
+
+// 11. Hacker Typing Effects (Sound + Visual)
+function initTypingEffects() {
+    const inputs = document.querySelectorAll('input[type="text"], textarea, input[type="password"], input[type="email"]');
+
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            audioSys.playClick(); // Mechanical sound
+
+            // Random color glitch on border
+            input.style.borderColor = Math.random() > 0.5 ? 'var(--neon-green)' : 'var(--neon-pink)';
+            setTimeout(() => input.style.borderColor = '', 100);
+        });
+    });
+}
+
+// 12. Page Transition (Terminal Style)
+function initPageTransition() {
+    // Intercept link clicks
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link && link.href && link.href.startsWith(window.location.origin) && !link.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const targetUrl = link.href;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'page-transition-overlay';
+            overlay.innerHTML = `<div class="loader-text">> INITIATING_JUMP_SEQUENCE...</div>`;
+            document.body.appendChild(overlay);
+
+            // Play sound
+            audioSys.playGlitch();
+
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 800);
+        }
+    });
+}
 
 // 6. Tor Gate Simulation (Triggered by 'T' key 3 times)
 function initTorGate() {
