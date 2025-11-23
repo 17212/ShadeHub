@@ -5,23 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShadeHub | View Node</title>
+    <link rel="icon" href="webicon.png" type="image/png">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/effects.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Roboto+Mono:wght@400;700&display=swap"
         rel="stylesheet">
     <script type="module" src="js/firebase.js"></script>
+    <script type="module" src="js/effects.js"></script>
     <script type="module">
         import { db } from './js/firebase.js';
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { initCommentsListener, addComment } from './js/comments.js';
         import { formatTimestamp } from './js/ui.js';
-        import './js/auth.js'; // Init auth
+        import './js/auth.js';
 
-        // Matrix Rain
-        import { initMatrixRain } from './js/app.js'; // We might need to export this or copy it. 
-        // Actually app.js runs on load, but we need to make sure it doesn't conflict.
-        // Let's just rely on app.js being included if we want global effects, 
-        // but for this specific page logic we write it here or in a specific module.
-        // For simplicity, I'll inline the specific logic here.
+        // Matrix Rain is handled by effects.js or app.js globally now, 
+        // but if we want it specific here we can leave it. 
+        // For now, let's rely on the global effects.
 
         const urlParams = new URLSearchParams(window.location.search);
         const postId = urlParams.get('id');
@@ -133,9 +133,8 @@
         </div>
     </div>
 
-    <!-- Re-use matrix rain logic from app.js or simple inline -->
     <script>
-        // Simple matrix rain for this page
+        // Simple matrix rain for this page (if not covered by global)
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         document.getElementById('matrix-bg').appendChild(canvas);
