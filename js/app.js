@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listeners for Modals
     setupModals();
     initMatrixRain();
+
+    // Explicit Login Listener Fix
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const modal = document.getElementById('auth-modal');
+            if (modal) modal.classList.remove('hidden');
+        });
+    }
 });
 
 function initMatrixRain() {
