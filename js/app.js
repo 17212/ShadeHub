@@ -1,5 +1,10 @@
 import { auth, db } from './firebase.js';
 
+// Initialize Feed
+import('./posts.js').then(module => {
+    module.loadPosts();
+});
+
 // Event Listeners for Modals
 setupModals();
 });
