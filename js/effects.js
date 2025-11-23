@@ -169,6 +169,105 @@ function initCrazyFeatures() {
     // (Simplified for now: just add class to some elements manually or randomly)
 }
 
+// 7. Zen Mode (Toggle with 'Z' key)
+function initZenMode() {
+    let zenEnabled = false;
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'z' && e.altKey) { // Alt+Z to avoid accidental triggers
+            zenEnabled = !zenEnabled;
+            document.body.classList.toggle('zen-mode', zenEnabled);
+            audioSys.playClick();
+            showToast(zenEnabled ? 'ZEN_MODE_ENABLED' : 'ZEN_MODE_DISABLED');
+        }
+    });
+}
+
+// 8. Scroll Progress Indicator
+function initScrollProgress() {
+    const bar = document.createElement('div');
+    bar.className = 'scroll-progress';
+    document.body.appendChild(bar);
+
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        bar.style.width = scrolled + '%';
+    });
+}
+
+// 9. Command Palette (Ctrl+K)
+function initCommandPalette() {
+    const palette = document.createElement('div');
+    palette.className = 'command-palette hidden';
+    palette.innerHTML = `
+        <div class="cmd-content">
+            <input type="text" id="cmd-input" placeholder="> ENTER_COMMAND...">
+            <ul id="cmd-list">
+                <li data-action="home">> GO_TO_FEED</li>
+                <li data-action="profile">> OPEN_PROFILE</li>
+                <li data-action="new_post">> UPLOAD_DATA</li>
+                <li data-action="zen">> TOGGLE_ZEN_MODE</li>
+                <li data-action="tor">> CONNECT_TOR</li>
+            </ul>
+        </div>
+    `;
+    document.body.appendChild(palette);
+
+    const input = palette.querySelector('#cmd-input');
+    const list = palette.querySelector('#cmd-list');
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'k' && e.ctrlKey) {
+            e.preventDefault();
+            palette.classList.remove('hidden');
+            input.focus();
+        }
+        if (e.key === 'Escape') {
+            palette.classList.add('hidden');
+        }
+    });
+
+    // Filter commands
+    input.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        Array.from(list.children).forEach(li => {
+            const text = li.innerText.toLowerCase();
+            li.style.display = text.includes(term) ? 'block' : 'none';
+        });
+    });
+
+    // Execute commands
+    list.addEventListener('click', (e) => {
+        const action = e.target.getAttribute('data-action');
+        if (!action) return;
+
+        palette.classList.add('hidden');
+        audioSys.playClick();
+
+        switch (action) {
+            case 'home': window.location.href = 'index.html'; break;
+            case 'profile': window.location.href = 'profile.html'; break;
+            case 'new_post': document.getElementById('create-post-btn').click(); break;
+            case 'zen': document.body.classList.toggle('zen-mode'); break;
+            case 'tor': simulateTorConnection(); break;
+        }
+    });
+}
+
+function showToast(msg) {
+    // Simple toast reuse or create new
+    const toast = document.createElement('div');
+    toast.className = 'sys-toast';
+    toast.innerText = `> ${msg}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+initZenMode();
+initScrollProgress();
+initCommandPalette();
+
 // 6. Tor Gate Simulation (Triggered by 'T' key 3 times)
 function initTorGate() {
     let tCount = 0;

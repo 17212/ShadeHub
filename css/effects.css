@@ -192,11 +192,322 @@ body {
 /* Self Destruct Timer */
 #self-destruct {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
-    color: red;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 1.5rem;
-    z-index: 10000;
-    text-shadow: 0 0 5px red;
-}
+
+    /* CCTV Overlay */
+    .cctv-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        background:
+            linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+            linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        background-size: 100% 2px, 3px 100%;
+        box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.9);
+        opacity: 0.4;
+        animation: cctv-flicker 0.15s infinite;
+    }
+
+    @keyframes cctv-flicker {
+        0% {
+            opacity: 0.38;
+        }
+
+        50% {
+            opacity: 0.42;
+        }
+
+        100% {
+            opacity: 0.38;
+        }
+    }
+
+    /* Redacted Text */
+    .redacted {
+        background: #000;
+        color: #000;
+        cursor: help;
+        transition: all 0.5s ease;
+        padding: 0 5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .redacted::after {
+        content: 'TOP SECRET';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #333;
+        font-size: 0.6em;
+        letter-spacing: 2px;
+        pointer-events: none;
+    }
+
+    .redacted:hover {
+        background: transparent;
+        color: var(--neon-green);
+    }
+
+    .redacted:hover::after {
+        display: none;
+    }
+
+    /* Chromatic Aberration for Headings */
+    h1,
+    h2 {
+        text-shadow:
+            2px 0 rgba(255, 0, 0, 0.5),
+            -2px 0 rgba(0, 255, 255, 0.5);
+        animation: chromatic-shift 3s infinite alternate;
+    }
+
+    @keyframes chromatic-shift {
+        0% {
+            text-shadow: 2px 0 rgba(255, 0, 0, 0.5), -2px 0 rgba(0, 255, 255, 0.5);
+        }
+
+        100% {
+            text-shadow: -2px 0 rgba(255, 0, 0, 0.5), 2px 0 rgba(0, 255, 255, 0.5);
+        }
+    }
+
+    /* Custom Cursor */
+    body {
+        cursor: none;
+        /* Hide default cursor */
+    }
+
+    .custom-cursor {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        border: 1px solid var(--neon-green);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10000;
+        transform: translate(-50%, -50%);
+        transition: width 0.2s, height 0.2s, background 0.2s;
+        mix-blend-mode: difference;
+    }
+
+    .custom-cursor.hovered {
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 255, 65, 0.2);
+        border-color: var(--neon-cyan);
+    }
+
+    .cursor-trail {
+        position: fixed;
+        color: var(--neon-green);
+        font-size: 10px;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0;
+        animation: fade-out 1s forwards;
+    }
+
+    @keyframes fade-out {
+        0% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    }
+
+    /* Screen Shake */
+    .shake {
+        animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+    }
+
+    @keyframes shake {
+
+        10%,
+        90% {
+            transform: translate3d(-1px, 0, 0);
+        }
+
+        20%,
+        80% {
+            transform: translate3d(2px, 0, 0);
+        }
+
+        30%,
+        50%,
+        70% {
+            transform: translate3d(-4px, 0, 0);
+        }
+
+        40%,
+        60% {
+            transform: translate3d(4px, 0, 0);
+        }
+    }
+
+    /* Splash Screen */
+    #splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        z-index: 20000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        font-family: 'Share Tech Mono', monospace;
+    }
+
+    .terminal-text {
+        color: var(--neon-green);
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        animation: type-in 0.1s forwards;
+    }
+
+    /* Paranoia Mode */
+    .paranoia-active {
+        filter: invert(1) hue-rotate(180deg);
+    }
+
+    /* Self Destruct Timer */
+    #self-destruct {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        color: red;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 1.5rem;
+        z-index: 10000;
+        text-shadow: 0 0 5px red;
+    }
+
+    /* Zen Mode */
+    .zen-mode .navbar,
+    .zen-mode .sidebar,
+    .zen-mode .post-actions,
+    .zen-mode .scanline,
+    .zen-mode .cctv-overlay {
+        display: none !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .zen-mode .app-container {
+        max-width: 800px;
+    }
+
+    /* Scroll Progress */
+    .scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: var(--neon-pink);
+        z-index: 10001;
+        box-shadow: 0 0 10px var(--neon-pink);
+        transition: width 0.1s;
+    }
+
+    /* Command Palette */
+    .command-palette {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 20000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(5px);
+    }
+
+    .command-palette.hidden {
+        display: none;
+    }
+
+    .cmd-content {
+        width: 100%;
+        max-width: 600px;
+        background: #111;
+        border: 1px solid var(--neon-green);
+        box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);
+    }
+
+    #cmd-input {
+        width: 100%;
+        background: #000;
+        border: none;
+        border-bottom: 1px solid #333;
+        color: var(--neon-green);
+        padding: 1.5rem;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 1.2rem;
+        outline: none;
+    }
+
+    #cmd-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    #cmd-list li {
+        padding: 1rem 1.5rem;
+        color: var(--text-dim);
+        cursor: pointer;
+        border-bottom: 1px solid #222;
+        transition: all 0.2s;
+    }
+
+    #cmd-list li:hover {
+        background: rgba(0, 255, 65, 0.1);
+        color: #fff;
+        padding-left: 2rem;
+    }
+
+    /* System Toast */
+    .sys-toast {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #000;
+        border: 1px solid var(--neon-green);
+        color: var(--neon-green);
+        padding: 1rem 2rem;
+        font-family: 'Share Tech Mono', monospace;
+        z-index: 10002;
+        animation: slide-up 0.3s ease;
+    }
+
+    @keyframes slide-up {
+        from {
+            transform: translate(-50%, 100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+    }
