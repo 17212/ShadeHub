@@ -388,3 +388,174 @@ function simulateTorConnection() {
 }
 
 initTorGate();
+initKonamiCode();
+initEncryptedComments();
+initSystemLogs();
+initNodeMap();
+
+// 13. Konami Code (God Mode)
+function initKonamiCode() {
+    const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let index = 0;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === code[index]) {
+            index++;
+            if (index === code.length) {
+                activateGodMode();
+                index = 0;
+            }
+        } else {
+            index = 0;
+        }
+    });
+}
+
+function activateGodMode() {
+    audioSys.playGlitch();
+    document.body.style.fontFamily = '"Comic Sans MS", cursive'; // The ultimate troll
+    alert('// GOD_MODE_ACTIVATED: UNLIMITED_POWER (Just kidding, nice font though)');
+    setTimeout(() => {
+        document.body.style.fontFamily = '';
+        showToast('GOD_MODE_DEACTIVATED');
+    }, 5000);
+}
+
+// 14. Encrypted Comments (Decrypt on Hover)
+function initEncryptedComments() {
+    // Observer to handle dynamically loaded comments
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1 && node.classList.contains('comment-card')) {
+                    encryptNode(node.querySelector('p') || node); // Assuming p tag or direct text
+                }
+            });
+        });
+    });
+
+    const container = document.getElementById('comments-container');
+    if (container) {
+        observer.observe(container, { childList: true, subtree: true });
+    }
+}
+
+function encryptNode(element) {
+    const originalText = element.innerText;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+
+    element.dataset.original = originalText;
+    element.innerText = originalText.split('').map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+    element.classList.add('encrypted-text');
+
+    element.addEventListener('mouseenter', () => {
+        revealText(element, originalText);
+        audioSys.playHover();
+    });
+}
+
+function revealText(element, text) {
+    let iterations = 0;
+    const interval = setInterval(() => {
+        element.innerText = element.innerText.split('').map((char, index) => {
+            if (index < iterations) {
+                return text[index];
+            }
+            return 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*'[Math.floor(Math.random() * 43)];
+        }).join('');
+
+        if (iterations >= text.length) {
+            clearInterval(interval);
+        }
+        iterations += 1 / 3; // Speed of decryption
+    }, 30);
+}
+
+// 15. Live System Logs
+function initSystemLogs() {
+    const logContainer = document.createElement('div');
+    logContainer.className = 'system-logs';
+    document.body.appendChild(logContainer);
+
+    const messages = [
+        'Packet intercepted from 192.168.x.x',
+        'Encryption key rotated',
+        'New node joined the swarm',
+        'Brute force attempt blocked',
+        'Data stream synchronized',
+        'Ping: 14ms',
+        'Firewall integrity: 98%'
+    ];
+
+    setInterval(() => {
+        const msg = messages[Math.floor(Math.random() * messages.length)];
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.innerText = `> [${new Date().toLocaleTimeString()}] ${msg}`;
+        logContainer.prepend(line);
+
+        if (logContainer.children.length > 5) {
+            logContainer.lastChild.remove();
+        }
+    }, 2000);
+}
+
+// 16. Active Node Map (Visual)
+function initNodeMap() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.innerHTML = `<h3>// ACTIVE_NODES</h3><canvas id="node-map" width="240" height="150"></canvas>`;
+    sidebar.appendChild(panel);
+
+    const canvas = document.getElementById('node-map');
+    const ctx = canvas.getContext('2d');
+    const nodes = [];
+
+    for (let i = 0; i < 20; i++) {
+        nodes.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2
+        });
+    }
+
+    function draw() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#00ff41';
+        nodes.forEach(node => {
+            node.x += node.vx;
+            node.y += node.vy;
+
+            if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+            if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw connections
+        ctx.strokeStyle = 'rgba(0, 255, 65, 0.2)';
+        ctx.beginPath();
+        for (let i = 0; i < nodes.length; i++) {
+            for (let j = i + 1; j < nodes.length; j++) {
+                const dx = nodes[i].x - nodes[j].x;
+                const dy = nodes[i].y - nodes[j].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 50) {
+                    ctx.moveTo(nodes[i].x, nodes[i].y);
+                    ctx.lineTo(nodes[j].x, nodes[j].y);
+                }
+            }
+        }
+        ctx.stroke();
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
