@@ -1,138 +1,220 @@
+console.log("Posts.js loading...");
 import { db, auth } from './firebase.js';
-import {
-    collection,
-    addDoc,
-    query,
-    orderBy,
-    limit,
-    getDocs,
-    where,
-    doc,
-    updateDoc,
-    increment,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { showToast, createPostElement } from './ui.js';
+import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, arrayUnion, arrayRemove, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const postsCollection = collection(db, 'posts');
+const feedContainer = document.getElementById('feed-container');
+const createPostBtn = document.getElementById('create-post-btn');
+const createPostModal = document.getElementById('create-post-modal');
+const postForm = document.getElementById('post-form');
+const searchInput = document.getElementById('search-input');
+const filterLinks = document.querySelectorAll('.menu-item[data-filter]');
 
-// --- Create Post ---
-export async function createPost(title, body, tags) {
-    if (!auth.currentUser) {
-        showToast('AUTH_REQUIRED', 'error');
-        return;
-    }
+let currentFilter = 'all';
+let searchQuery = '';
 
-    try {
-        await addDoc(postsCollection, {
-            title,
-            body,
-            tags: tags.split(',').map(t => t.trim()).filter(t => t),
-            authorId: auth.currentUser.uid,
-            authorName: auth.currentUser.displayName || 'ANONYMOUS',
-            timestamp: serverTimestamp(),
-            voteCount: 0,
-            commentCount: 0
-        });
-        showToast('DATA_UPLOADED_SUCCESSFULLY');
-        document.getElementById('create-post-modal').classList.add('hidden');
-        document.getElementById('post-form').reset();
+// Auth State
+let currentUser = null;
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+});
 
-        // Reload posts to show the new one
-        loadPosts();
-    } catch (error) {
-        console.error(error);
-        showToast('UPLOAD_FAILED', 'error');
+// Open/Close Modal
+if (createPostBtn) {
+    createPostBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!currentUser) {
+            alert("Authentication required to transmit data.");
+            return;
+        }
+        openModal('create-post-modal');
+    });
+}
+
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove('hidden');
+        requestAnimationFrame(() => modal.classList.add('active'));
     }
 }
 
-// --- Load Posts (with Filters) ---
-export async function loadPosts(filter = 'all') {
-    const feedContainer = document.getElementById('feed-container');
+// Create Post
+if (postForm) {
+    postForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById('post-title').value;
+        const body = document.getElementById('post-body').value;
+        const tags = document.getElementById('post-tags').value;
+        const imageUrl = document.getElementById('post-image').value;
+
+        try {
+            await addDoc(collection(db, "posts"), {
+                title: title,
+                body: body,
+                imageUrl: imageUrl || null,
+                tags: tags.split(',').map(t => t.trim()).filter(t => t),
+                uid: currentUser.uid,
+                author: currentUser.displayName || "Anonymous",
+                timestamp: serverTimestamp(),
+                likes: []
+            });
+
+            // Close modal and reset form
+            const modal = document.getElementById('create-post-modal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            postForm.reset();
+
+            loadPosts(); // Reload feed
+        } catch (error) {
+            console.error("Error creating post:", error);
+            alert("Transmission failed.");
+        }
+    });
+}
+
+// Search & Filter Listeners
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase();
+        loadPosts();
+    });
+}
+
+filterLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        filterLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        currentFilter = link.dataset.filter;
+        loadPosts();
+    });
+});
+
+// Load Posts
+export async function loadPosts() {
     if (!feedContainer) return;
 
-    feedContainer.innerHTML = `
-        <div class="loading-skeleton">
-            <div class="skeleton-line title"></div>
-            <div class="skeleton-line body"></div>
+    feedContainer.innerHTML = '<div class="loading-skeleton" style="padding: 20px; text-align: center; color: var(--text-secondary);">Loading Data Stream...</div>';
+
+    let q;
+    const postsRef = collection(db, "posts");
+
+    if (currentFilter === 'mine' && currentUser) {
+        q = query(postsRef, where("uid", "==", currentUser.uid), orderBy("timestamp", "desc"));
+    } else if (currentFilter === 'popular') {
+        // Client-side sort for popular since we don't have a 'likesCount' field indexed perfectly yet
+        q = query(postsRef, orderBy("timestamp", "desc"));
+    } else {
+        q = query(postsRef, orderBy("timestamp", "desc"));
+    }
+
+    const querySnapshot = await getDocs(q);
+
+    feedContainer.innerHTML = '';
+
+    let posts = [];
+    querySnapshot.forEach((doc) => {
+        posts.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Client-side Filtering & Sorting
+    if (currentFilter === 'popular') {
+        posts.sort((a, b) => (b.likes ? b.likes.length : 0) - (a.likes ? a.likes.length : 0));
+    }
+
+    if (searchQuery) {
+        posts = posts.filter(post =>
+            post.title.toLowerCase().includes(searchQuery) ||
+            post.body.toLowerCase().includes(searchQuery) ||
+            (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchQuery)))
+        );
+    }
+
+    if (posts.length === 0) {
+        feedContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">No transmissions found.</div>';
+        return;
+    }
+
+    posts.forEach(post => {
+        const postEl = createPostElement(post.id, post);
+        feedContainer.appendChild(postEl);
+    });
+}
+
+function createPostElement(id, post) {
+    const div = document.createElement('div');
+    div.className = 'post-card';
+
+    const isLiked = post.likes && currentUser && post.likes.includes(currentUser.uid);
+    const likeCount = post.likes ? post.likes.length : 0;
+
+    // Format time
+    let time = 'Unknown';
+    if (post.timestamp) {
+        time = post.timestamp.toDate().toLocaleDateString() + ' ' + post.timestamp.toDate().toLocaleTimeString();
+    }
+
+    // Image HTML
+    const imageHtml = post.imageUrl ?
+        `<div class="post-image" style="margin-top: 16px; border-radius: 12px; overflow: hidden;">
+            <img src="${escapeHtml(post.imageUrl)}" alt="Post Image" style="width: 100%; height: auto; display: block;">
+         </div>` : '';
+
+    div.innerHTML = `
+        <div class="post-header">
+            <div class="user-avatar">${post.author[0].toUpperCase()}</div>
+            <div class="post-info">
+                <h3>${escapeHtml(post.title)}</h3>
+                <span>${escapeHtml(post.author)} • ${time}</span>
+            </div>
+        </div>
+        <div class="post-content">
+            ${escapeHtml(post.body)}
+            ${imageHtml}
+        </div>
+        <div class="post-actions">
+            <button class="action-btn like-btn ${isLiked ? 'active' : ''}" data-id="${id}">
+                <span>${isLiked ? '♥' : '♡'}</span> ${likeCount}
+            </button>
+            <button class="action-btn">
+                <span>💬</span> Comment
+            </button>
         </div>
     `;
 
-    try {
-        let q;
-
-        if (filter === 'popular') {
-            q = query(postsCollection, orderBy("voteCount", "desc"), limit(20));
-        } else if (filter === 'mine') {
-            const user = auth.currentUser;
-            if (!user) {
-                feedContainer.innerHTML = '<p class="error-msg">> ERROR: AUTH_REQUIRED_FOR_LOGS</p>';
-                return;
-            }
-            q = query(postsCollection, where("authorId", "==", user.uid), orderBy("timestamp", "desc"));
-        } else {
-            // Default: Newest
-            q = query(postsCollection, orderBy("timestamp", "desc"), limit(20));
-        }
-
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            feedContainer.innerHTML = '<p class="no-data">> NO_DATA_FOUND_IN_SECTOR</p>';
+    // Like Handler
+    const likeBtn = div.querySelector('.like-btn');
+    likeBtn.addEventListener('click', async () => {
+        if (!currentUser) {
+            alert("Auth required.");
             return;
         }
 
-        feedContainer.innerHTML = '';
-        querySnapshot.forEach((doc) => {
-            const post = { id: doc.id, ...doc.data() };
-            const postElement = createPostElement(post);
-            feedContainer.appendChild(postElement);
-        });
-
-    } catch (error) {
-        console.error("Error loading posts:", error);
-        feedContainer.innerHTML = '<p class="error-msg">> ERROR: DATA_CORRUPTION_DETECTED</p>';
-    }
-}
-
-// --- Vote System ---
-export async function votePost(postId, type) {
-    const user = auth.currentUser;
-    if (!user) {
-        showToast('AUTH_REQUIRED_TO_VOTE', 'error');
-        return;
-    }
-
-    const postRef = doc(db, "posts", postId);
-    const postElement = document.getElementById(`post-${postId}`);
-    const scoreSpan = postElement?.querySelector('.vote-score');
-
-    try {
-        // Optimistic UI Update
-        if (scoreSpan) {
-            let currentScore = parseInt(scoreSpan.innerText) || 0;
-            scoreSpan.innerText = type === 'up' ? currentScore + 1 : currentScore - 1;
+        const postRef = doc(db, "posts", id);
+        if (isLiked) {
+            await updateDoc(postRef, {
+                likes: arrayRemove(currentUser.uid)
+            });
+        } else {
+            await updateDoc(postRef, {
+                likes: arrayUnion(currentUser.uid)
+            });
         }
+        loadPosts(); // Refresh to show update
+    });
 
-        // Update Firestore
-        await updateDoc(postRef, {
-            voteCount: increment(type === 'up' ? 1 : -1)
-        });
-
-    } catch (error) {
-        console.error("Vote failed:", error);
-        // Revert UI if failed (optional, keeping it simple)
-    }
+    return div;
 }
 
-// Bind Create Post Form
-document.getElementById('post-form')?.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = document.getElementById('post-title').value;
-    const body = document.getElementById('post-body').value;
-    const tags = document.getElementById('post-tags').value;
-    createPost(title, body, tags);
-});
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-// Expose functions globally if needed for inline onclicks (though module usage is better)
-window.vote = (id, type) => votePost(id, type);
+// Initial Load
+document.addEventListener('DOMContentLoaded', loadPosts);

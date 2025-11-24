@@ -4,121 +4,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShadeHub | User Profile</title>
+    <title>Profile | ShadeHub</title>
     <link rel="icon" href="webicon.png" type="image/png">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/effects.css">
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Roboto+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-    <script type="module" src="js/firebase.js"></script>
-    <script type="module" src="js/effects.js"></script>
-    <script type="module">
-        import { auth, db } from './js/firebase.js';
-        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { formatTimestamp } from './js/ui.js';
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                loadProfile(user.uid);
-                loadUserPosts(user.uid);
-            } else {
-                window.location.href = 'index.html';
-            }
-        });
-
-        async function loadProfile(uid) {
-            const docRef = doc(db, "users", uid);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                document.getElementById('username').innerText = data.username;
-                document.getElementById('user-karma').innerText = data.karma || 0;
-                document.getElementById('join-date').innerText = formatTimestamp(data.createdAt);
-            }
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/personalization.css">
+    <style>
+        .profile-header {
+            position: relative;
+            margin-bottom: 40px;
         }
 
-        async function loadUserPosts(uid) {
-            const q = query(collection(db, "posts"), where("authorId", "==", uid));
-            const querySnapshot = await getDocs(q);
-            const container = document.getElementById('user-posts');
-
-            if (querySnapshot.empty) {
-                container.innerHTML = '<p>// NO_LOGS_FOUND</p>';
-                return;
-            }
-
-            querySnapshot.forEach((doc) => {
-                const post = doc.data();
-                const div = document.createElement('div');
-                div.className = 'post-card';
-                div.innerHTML = `
-                    <div class="post-meta">${formatTimestamp(post.timestamp)}</div>
-                    <h3 class="post-title"><a href="post.html?id=${doc.id}">${post.title}</a></h3>
-                    <div class="post-preview">Votes: ${post.votes} | Comments: ${post.commentsCount}</div>
-                `;
-                container.appendChild(div);
-            });
+        .cover-photo {
+            height: 200px;
+            background: linear-gradient(45deg, #0A84FF, #a044ff);
+            border-radius: var(--radius-lg);
+            opacity: 0.8;
         }
-    </script>
-</head>
 
-<body>
-    <div class="matrix-bg" id="matrix-bg"></div>
-    <div class="scanline"></div>
-
-    <nav class="navbar" style="max-width: 1200px; margin: 0 auto; padding: 1rem;">
-        <div class="logo"><a href="index.html" style="text-decoration:none;"><span class="glitch"
-                    data-text="SHADEHUB">SHADEHUB</span></a></div>
-        <div class="nav-links">
-            <a href="index.html">[RETURN_TO_FEED]</a>
-        </div>
-    </nav>
-
-    <div class="app-container">
-        <div class="panel" style="max-width: 600px; margin: 0 auto; text-align: center;">
-            <div
-                style="width: 100px; height: 100px; background: #333; border-radius: 50%; margin: 0 auto 1rem; border: 2px solid var(--neon-green);">
-            </div>
-            <h1 id="username" class="glitch">LOADING...</h1>
-            <p style="color: var(--text-dim); margin: 1rem 0;">KARMA: <span id="user-karma"
-                    style="color: var(--neon-cyan)">0</span></p>
-            <p style="color: var(--text-dim);">JOINED: <span id="join-date">...</span></p>
-        </div>
-
-        <h2 style="margin: 2rem 0; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">// USER_LOGS
-        </h2>
-        <div id="user-posts" class="feed-container">
-            <!-- Posts injected here -->
-        </div>
-    </div>
-
-    <script>
-        // Simple matrix rain
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        document.getElementById('matrix-bg').appendChild(canvas);
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const letters = 'USER_DATA';
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
-        function draw() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#0FF';
-            ctx.font = fontSize + 'px monospace';
-            for (let i = 0; i < drops.length; i++) {
-                const text = letters.charAt(Math.floor(Math.random() * letters.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
+        .profile-info {
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            margin-top: -60px;
+            padding: 0 24px;
         }
-        setInterval(draw, 33);
-    </script>
-</body>
 
-</html>
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #1c1c1e;
+            border: 4px solid var(--bg-depth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            z-index: 1;
+        }
+
+        .profile-details h1 {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        .profile-details span {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 24px;
+            padding: 0 24px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            <div class="app-container">< !-- Navigation Bar --><nav class="navbar"><div class="nav-content"><a href="index.html" class="logo"><div class="logo-icon"></div><span>ShadeHub</span></a><div class="nav-links"><a href="index.html" class="nav-link">Feed</a><a href="chat.html" class="nav-link">Dark Room</a><a href="profile.html" class="nav-link active" id="profile-link">Profile</a><a href="#" class="nav-link" id="login-btn">Login</a></div></div></nav><main><div class="profile-header"><div class="cover-photo"></div><div class="profile-info"><div class="profile-avatar" id="profile-avatar">?</div><div class="profile-details"><h1 id="profile-name">Anonymous</h1><span id="profile-email">No active session</span></div><div style="margin-left: auto; display: flex; gap: 10px; margin-bottom: 10px;"><button class="btn-glass" id="settings-btn">Settings</button><button class="btn-glass" id="edit-profile-btn">Edit Profile</button></div></div><div class="profile-stats"><div class="stat-item"><span class="stat-value">0</span><span class="stat-label">Posts</span></div><div class="stat-item"><span class="stat-value">0</span><span class="stat-label">Followers</span></div><div class="stat-item"><span class="stat-value">0</span><span class="stat-label">Following</span></div></div></div><div class="feed-container" id="user-posts-container">< !-- User posts injected here --><div class="post-card"><div class="post-content" style="text-align: center; color: var(--text-secondary);">No transmission history found. </div></div></div></main></div>< !-- Auth Modal (Reused) --><div id="auth-modal" class="modal"><div class="modal-content"><h2>Authenticate</h2><form id="login-form"><div class="form-group"><input type="email" placeholder="Email Address" required></div><div class="form-group"><input type="password" placeholder="Access Key" required></div><button type="submit" class="btn-primary" style="width: 100%;">Establish Link</button></form><button class="close-modal"
+            style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;
+            </button></div></div><div id="settings-modal" class="modal"><div class="modal-content"><h2>Personalization</h2><div class="settings-section"><h3>Accent Color</h3><div class="color-grid"><button class="color-btn" style="background: #0A84FF;" data-color="#0A84FF"></button><button class="color-btn" style="background: #BF5AF2;" data-color="#BF5AF2"></button><button class="color-btn" style="background: #FF375F;" data-color="#FF375F"></button><button class="color-btn" style="background: #30D158;" data-color="#30D158"></button><button class="color-btn" style="background: #FFD60A;" data-color="#FFD60A"></button></div></div><div class="settings-section" style="margin-top: 24px;"><h3>Interface Mode</h3><div class="toggle-row"><span>Zen Mode (Minimal UI)</span><label class="switch"><input type="checkbox" id="zen-mode-toggle"><span class="slider round"></span></label></div></div><button class="close-modal"
+            style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;
+            </button></div></div></body></html>

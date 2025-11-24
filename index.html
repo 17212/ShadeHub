@@ -6,93 +6,150 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShadeHub | The Underground Network</title>
     <link rel="icon" href="webicon.png" type="image/png">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/effects.css">
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Roboto+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/notifications.css">
     <!-- Firebase SDKs -->
     <script type="module" src="js/firebase.js"></script>
     <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/posts.js"></script>
     <script type="module" src="js/effects.js"></script>
 </head>
 
 <body>
-    <div class="matrix-bg" id="matrix-bg"></div>
-    <div class="scanline"></div>
-    <div class="cctv-overlay"></div>
+    <div class="aurora-bg"></div>
 
     <div class="app-container">
         <!-- Navigation Bar -->
         <nav class="navbar">
-            <div class="logo">
-                <span class="glitch" data-text="SHADEHUB">SHADEHUB</span>
-            </div>
-            <div class="nav-links">
-                <a href="index.html" class="active">[FEED]</a>
-                <a href="chat.html" class="neon-text">[DARK_ROOM]</a>
-                <a href="#" id="create-post-btn">[NEW_POST]</a>
-                <a href="profile.html" id="profile-link">[PROFILE]</a>
-                <a href="#" id="login-btn">[LOGIN]</a>
+            <div class="nav-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon"></div>
+                    <span>ShadeHub</span>
+                </a>
+                <div class="nav-links">
+                    <div class="nav-item-container" style="position: relative;">
+                        <button id="notif-btn" class="nav-icon-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span class="notif-badge hidden"></span>
+                        </button>
+                        <div id="notif-dropdown" class="glass-dropdown hidden">
+                            <div class="dropdown-header">
+                                <span>Notifications</span>
+                                <button class="text-btn" id="clear-notifs">Clear</button>
+                            </div>
+                            <div class="notif-list" id="notif-list">
+                                <div class="empty-state">No new alerts</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="index.html" class="nav-link active">Feed</a>
+                    <a href="chat.html" class="nav-link">Dark Room</a>
+                    <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+                    <a href="#" class="nav-link" id="login-btn">Login</a>
+                    <button id="create-post-btn" class="btn-primary">New Post</button>
+                </div>
             </div>
         </nav>
 
-        <main class="main-layout">
-            <!-- Sidebar (Filters & Info) -->
-            <aside class="sidebar">
-                <div class="panel">
-                    <h3>// SYSTEM_STATUS</h3>
-                    <div class="stat-row"><span>USERS:</span> <span id="user-count" class="neon-text">8,402</span></div>
-                    <div class="stat-row"><span>NODES:</span> <span class="neon-text">ACTIVE</span></div>
+        <!-- Sidebar (Desktop Only) -->
+        <aside class="sidebar">
+            <div class="glass-panel">
+                <div class="panel-title">System Status</div>
+                <div class="menu-item">
+                    <span>Users Online</span>
+                    <span style="margin-left: auto; color: var(--accent-primary);" id="user-count">8,402</span>
                 </div>
+                <div class="menu-item">
+                    <span>Network Status</span>
+                    <span style="margin-left: auto; color: #30d158;">Active</span>
+                </div>
+            </div>
 
-                <div class="panel">
-                    <h3>// FILTERS</h3>
-                    <ul class="filter-list">
-                        <li><a href="#" class="active">> ALL_THREADS</a></li>
-                        <li><a href="#">> POPULAR</a></li>
-                        <li><a href="#">> NEWEST</a></li>
-                        <li><a href="#">> MY_LOGS</a></li>
-                    </ul>
+            <div class="glass-panel">
+                <div class="panel-title">Filters</div>
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="search-input" placeholder="Search data streams..."
+                        style="padding: 8px 12px; font-size: 0.9rem; width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
                 </div>
-            </aside>
+                <a href="#" class="menu-item active" data-filter="all">All Threads</a>
+                <a href="#" class="menu-item" data-filter="popular">Popular</a>
+                <a href="#" class="menu-item" data-filter="newest">Newest</a>
+                <a href="#" class="menu-item" data-filter="mine">My Logs</a>
+            </div>
+        </aside>
 
-            <!-- Feed Section -->
-            <section class="feed-container" id="feed-container">
-                <!-- Posts will be injected here by JS -->
-                <div class="loading-skeleton">
-                    <div class="skeleton-line title"></div>
-                    <div class="skeleton-line body"></div>
-                    <div class="skeleton-line body"></div>
+        <!-- Main Feed -->
+        <main class="feed-container" id="feed-container">
+            <!-- Posts will be injected here by JS -->
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="user-avatar">S</div>
+                    <div class="post-info">
+                        <h3>System Message</h3>
+                        <span>Just now</span>
+                    </div>
                 </div>
-            </section>
+                <div class="post-content">
+                    Welcome to the new ShadeHub. The interface has been upgraded for maximum efficiency and aesthetics.
+                </div>
+                <div class="post-actions">
+                    <button class="action-btn like-btn">
+                        <span>♥</span> 1.2k
+                    </button>
+                    <button class="action-btn">
+                        <span>💬</span> 42 Comments
+                    </button>
+                </div>
+            </div>
         </main>
     </div>
 
     <!-- Modals -->
-    <div id="auth-modal" class="modal hidden">
+    <div id="auth-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>// AUTHENTICATE</h2>
+            <h2>Authenticate</h2>
             <form id="login-form">
-                <input type="email" placeholder="EMAIL_ADDRESS" required>
-                <input type="password" placeholder="ACCESS_KEY" required>
-                <button type="submit" class="cyber-btn">ESTABLISH_LINK</button>
+                <div class="form-group">
+                    <input type="email" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="Access Key" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Establish Link</button>
             </form>
-            <button id="google-login" class="cyber-btn secondary">GOOGLE_OAUTH_PROXY</button>
-            <button id="anon-login" class="cyber-btn ghost">ANONYMOUS_MODE</button>
+            <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+                <button id="google-login" class="btn-glass" style="width: 100%;">Continue with Google</button>
+                <button id="anon-login" class="btn-glass" style="width: 100%;">Anonymous Mode</button>
+            </div>
+            <button class="close-modal"
+                style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
         </div>
     </div>
 
-    <div id="create-post-modal" class="modal hidden">
+    <div id="create-post-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>// UPLOAD_DATA</h2>
+            <h2>Upload Data</h2>
             <form id="post-form">
-                <input type="text" id="post-title" placeholder="TITLE_HEADER" required>
-                <textarea id="post-body" placeholder="DATA_PAYLOAD..." required></textarea>
-                <input type="text" id="post-tags" placeholder="TAGS (comma separated)">
-                <button type="submit" class="cyber-btn">TRANSMIT</button>
+                <div class="form-group">
+                    <input type="text" id="post-title" placeholder="Title Header" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="post-body" placeholder="Data Payload..." rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="url" id="post-image" placeholder="Image URL (Optional)">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="post-tags" placeholder="Tags (comma separated)">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Transmit</button>
             </form>
+            <button class="close-modal"
+                style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
         </div>
     </div>
 
